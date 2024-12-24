@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Library</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .media-item {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .media-item h2 {
+            margin-top: 0;
+        }
+        button {
+            padding: 5px 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Media Library</h1>
+
+    <div id="media-container"></div>
+
+    <script>
+        // JavaScript Classes (from your provided code)
+        class Media {
+            constructor(title, isCheckedOut = false, ratings = []) {
+                this._title = title;
+                this._isCheckedOut = isCheckedOut;
+                this._ratings = ratings;
+            }
+            get title() {
+                return this._title;
+            }
+            get isCheckedOut() {
+                return this._isCheckedOut;
+            }
+            get ratings() {
+                return this._ratings;
+            }
+            toggleCheckOutStatus() {
+                this._isCheckedOut = !this._isCheckedOut;
+            }
+            getAverageRating() {
+                const ratingsSum = this._ratings.reduce((currentSum, rating) => currentSum + rating, 0);
+                const numberOfRatings = this._ratings.length;
+                return numberOfRatings === 0 ? 0 : (ratingsSum / numberOfRatings).toFixed(1);
+            }
+            addRating(newRating) {
+                const roundedRating = Math.ceil(newRating * 10) / 10; // Round to one decimal point
+                this._ratings.push(roundedRating);
+            }
+        }
+
+        class Book extends Media {
+            constructor(title, isCheckedOut, author, pages, ratings) {
+                super(title, isCheckedOut, ratings);
+                this._author = author;
+                this._pages = pages;
+            }
+            get author() {
+                return this._author;
+            }
+            get pages() {
+                return this._pages;
+            }
+        }
+
+        class Movie extends Media {
+            constructor(title, isCheckedOut, ratings, director, runTime) {
+                super(title, isCheckedOut, ratings);
+                this._director = director;
+                this._runTime = runTime;
+            }
+            get director() {
+                return this._director;
+            }
+            get runTime() {
+                return this._runTime;
+            }
+        }
+
+        class Cd extends Media {
+            constructor(title, isCheckedOut, ratings, songs) {
+                super(title, isCheckedOut, ratings);
+                this._songs = songs;
+            }
+            get songs() {
+                return this._songs;
+            }
+        }
+
+        // Create instances
+        const book1 = new Book("The Great Gatsby", false, "F. Scott Fitzgerald", 180, [4.23, 5.67, 3.89]);
+        const movie1 = new Movie("Inception", false, [4.45, 3.78, 4.99], "Christopher Nolan", 148);
+        const cd1 = new Cd("Thriller", false, [4.12, 4.88, 3.99], ["Thriller", "Beat It", "Billie Jean"]);
+
+        // Render media items
+        const mediaContainer = document.getElementById("media-container");
+
+        function renderMediaItem(media) {
+            const mediaDiv = document.createElement("div");
+            mediaDiv.className = "media-item";
+
+            let detailsHtml = `<h2>${media.title}</h2>`;
+            
+            if (media instanceof Book) {
+                detailsHtml += `<p>Author: ${media.author}</p><p>Pages: ${media.pages}</p>`;
+            } else if (media instanceof Movie) {
+                detailsHtml += `<p>Director: ${media.director}</p><p>Runtime: ${media.runTime} minutes</p>`;
+            } else if (media instanceof Cd) {
+                detailsHtml += `<p>Songs: ${media.songs.join(", ")}</p>`;
+            }
+
+            detailsHtml += `
+                <p>Average Rating: ${media.getAverageRating()}</p>
+                <p>Is Checked Out: ${media.isCheckedOut}</p>
+                <button onclick="toggleCheckout('${media.title}')">Toggle Check Out</button>
+                <input type="number" id="rating-${media.title}" placeholder="Add Rating" step="0.1" min="0" max="5">
+                <button onclick="addRating('${media.title}')">Add Rating</button>
+            `;
+
+            mediaDiv.innerHTML = detailsHtml;
+
+            mediaContainer.appendChild(mediaDiv);
+        }
+
+        function toggleCheckout(title) {
+            const mediaItem = [book1, movie1, cd1].find(item => item.title === title);
+            
+            if (mediaItem) {
+                mediaItem.toggleCheckOutStatus();
+                refreshUI();
+            }
+        }
+
+        function addRating(title) {
+            const ratingInput = document.getElementById(`rating-${title}`);
+            
+            if (ratingInput && ratingInput.value) {
+                const newRating = parseFloat(ratingInput.value);
+                
+                if (newRating >= 0 && newRating <= 5) {
+                    const mediaItem = [book1, movie1, cd1].find(item => item.title === title);
+                    
+                    if (mediaItem) {
+                        mediaItem.addRating(newRating);
+                        refreshUI();
+                    }
+                    
+                    ratingInput.value = ""; // Clear input field
+                } else {
+                    alert("Please enter a rating between 0 and 5.");
+                }
+                
+            } else {
+                alert("Please enter a valid rating.");
+            }
+        }
+
+        function refreshUI() {
+            mediaContainer.innerHTML = "";
+            
+            renderMediaItem(book1);
+            renderMediaItem(movie1);
+            renderMediaItem(cd1);
+        }
+
+        refreshUI();
+    </script>
+</body>
+</html>
